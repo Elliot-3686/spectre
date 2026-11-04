@@ -81,7 +81,7 @@ final class WallpaperController {
         v.frame = container.bounds
         v.autoresizingMask = [.width, .height]
         container.addSubview(v)
-        let o = NSHostingView(rootView: WallpaperOverlay(model: model, settings: model.settings))
+        let o = NSHostingView(rootView: WallpaperOverlay(live: model.live, settings: model.settings))
         o.frame = container.bounds
         o.autoresizingMask = [.width, .height]
         container.addSubview(o)
@@ -112,14 +112,14 @@ final class WallpaperController {
 }
 
 struct WallpaperOverlay: View {
-    @ObservedObject var model: AppModel
+    @ObservedObject var live: ReadoutStore
     @ObservedObject var settings: AppSettings
 
     var body: some View {
-        let r = model.readout
+        let r = live.readout
         let p = r.peaks.first
         VStack(alignment: .leading, spacing: 4) {
-            if settings.wallpaperShowTitle, let np = model.nowPlaying {
+            if settings.wallpaperShowTitle, let np = live.nowPlaying {
                 Text(np).font(.system(size: 13, weight: .light)).lineLimit(1)
             }
             if settings.wallpaperShowFrequency, let p {

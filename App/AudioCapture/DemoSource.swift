@@ -28,7 +28,9 @@ final class DemoSource {
         let tm = DispatchSource.makeTimerSource(queue: q)
         let interval = Double(block) / sampleRate
         tm.schedule(deadline: .now(), repeating: interval, leeway: .milliseconds(2))
-        tm.setEventHandler { [weak self] in self?.render() }
+        startTime = DispatchTime.now().uptimeNanoseconds
+        t = 0
+        tm.setEventHandler { [weak self] in self?.catchUp() }
         tm.resume()
         timer = tm
     }
@@ -46,6 +48,20 @@ final class DemoSource {
         [130.81, 196.00, 261.63, 329.63, 392.00],
         [98.00, 196.00, 246.94, 293.66, 392.00],
     ]
+
+    private var startTime: UInt64 = 0
+
+    /// Timers can be late (virtual machines, timer coalescing): generate
+    /// exactly what real time requires so the demo always runs at 48 kHz.
+    private func catchUp() {
+        let elapsed = Double(DispatchTime.now().uptimeNanoseconds - startTime) / 1e9
+        var due = Int(elapsed * sampleRate) - t
+        if due > block * 20 { t += due - block * 20; due = block * 20 }
+        while due >= block {
+            render()
+            due -= block
+        }
+    }
 
     private func render() {
         let sr = sampleRate

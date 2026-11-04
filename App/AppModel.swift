@@ -11,6 +11,11 @@ struct Readout: Equatable {
     var truePeakDB: Float = -200
 }
 
+final class ReadoutStore: ObservableObject {
+    @Published var readout = Readout()
+    @Published var nowPlaying: String?
+}
+
 /// Central coordinator: capture ↔ analysis ↔ rendering ↔ energy policy.
 final class AppModel: ObservableObject {
     let settings = AppSettings()
@@ -23,8 +28,10 @@ final class AppModel: ObservableObject {
     private(set) var windowView: SpectrumMetalView?
 
     @Published private(set) var status: CaptureController.Status = .idle
-    @Published private(set) var readout = Readout()
-    @Published private(set) var nowPlaying: String?
+    /// Fast-changing values live in their own store so that only the text views redraw.
+    let live = ReadoutStore()
+    var readout: Readout { live.readout }
+    var nowPlaying: String? { live.nowPlaying }
     @Published private(set) var windowLevel: QualityLevel = .high
     @Published private(set) var wallpaperLevel: QualityLevel = .medium
     @Published private(set) var analysisDescription = ""
@@ -49,8 +56,8 @@ final class AppModel: ObservableObject {
             self.refreshReadout()
         }
         capture.onSampleRateChange = { [weak self] _ in self?.updateAnalyzer() }
-        capture.onNowPlayingChange = { [weak self] t in self?.nowPlaying = t }
-        nowPlaying = capture.spotify.nowPlaying
+        capture.onNowPlayingChange = { [weak self] t in self?.live.nowPlaying = t }
+        live.nowPlaying = capture.spotify.nowPlaying
         power.onChange = { [weak self] in
             guard let self else { return }
             self.scheduler.suspended = self.power.suspended
@@ -205,7 +212,7 @@ final class AppModel: ObservableObject {
         snap.lock.unlock()
         if !r.hasSignal { r.peaks = [] }
         if !textVisible { r = Readout() }
-        if r != readout { readout = r }
+        if r != live.readout { live.readout = r }
     }
 
     func shutdown() {

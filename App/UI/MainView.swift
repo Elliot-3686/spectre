@@ -58,12 +58,12 @@ struct MainView: View {
                     HoverReadout(model: model, mode: settings.mode, location: p, size: geo.size)
                         .allowsHitTesting(false)
                 }
-                ReadoutView(model: model)
+                ReadoutView(live: model.live, truePeak: settings.truePeak)
                     .padding(.leading, 56).padding(.top, 34)
                     .allowsHitTesting(false)
                 VStack(alignment: .trailing, spacing: 10) {
                     ControlsBar(settings: settings, openSettings: openSettings)
-                    PeaksList(readout: model.readout).allowsHitTesting(false)
+                    PeaksList(live: model.live).allowsHitTesting(false)
                 }
                 .padding(.top, 30).padding(.trailing, 20)
                 .frame(maxWidth: .infinity, alignment: .topTrailing)
@@ -86,10 +86,11 @@ struct MainView: View {
 // MARK: - Read-outs
 
 struct ReadoutView: View {
-    @ObservedObject var model: AppModel
+    @ObservedObject var live: ReadoutStore
+    let truePeak: Bool
 
     var body: some View {
-        let r = model.readout
+        let r = live.readout
         let dominant = r.peaks.first
         VStack(alignment: .leading, spacing: 3) {
             Text(dominant.map { Fmt.hz($0.frequency) } ?? "—")
@@ -99,12 +100,12 @@ struct ReadoutView: View {
                 Text(dominant.map { Fmt.note($0.frequency) } ?? " ")
                 Text(dominant.map { Fmt.db($0.levelDB) } ?? " ")
                 Text("RMS " + Fmt.db(r.rmsDB))
-                if model.settings.truePeak { Text("crête vraie " + Fmt.db(r.truePeakDB, unit: "dBTP")) }
+                if truePeak { Text("crête vraie " + Fmt.db(r.truePeakDB, unit: "dBTP")) }
             }
             .font(.system(size: 12, weight: .light))
             .monospacedDigit()
             .opacity(0.8)
-            if let np = model.nowPlaying {
+            if let np = live.nowPlaying {
                 Text(np).font(.system(size: 11, weight: .light)).opacity(0.6).lineLimit(1)
             }
         }
@@ -115,9 +116,10 @@ struct ReadoutView: View {
 }
 
 struct PeaksList: View {
-    let readout: Readout
+    @ObservedObject var live: ReadoutStore
 
     var body: some View {
+        let readout = live.readout
         VStack(alignment: .trailing, spacing: 2) {
             ForEach(Array(readout.peaks.enumerated()), id: \.offset) { i, p in
                 HStack(spacing: 10) {
