@@ -305,9 +305,20 @@ final class MeasurementRun {
         guard let model = delegate?.model else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + warmup) { [self] in
             let meter = PhaseMeter(frames: model.scheduler.framesDrawn)
+            let views = [model.windowView, model.wallpaper.view]
+            let f0 = views.map { $0?.framesDrawn ?? 0 }
+            let d0 = views.map { $0?.drawSeconds ?? 0 }
+            let t0 = CACurrentMediaTime()
             DispatchQueue.main.asyncAfter(deadline: .now() + length) { [self] in
                 let r = meter.finish(frames: model.scheduler.framesDrawn)
-                report += String(format: "| %@ | %.2f %% | %.1f | %.0f | %.3f |\n", name, r.cpu, r.fps, r.wakeups, r.watts)
+                let dt = CACurrentMediaTime() - t0
+                var detail = ""
+                for (i, label) in ["fenêtre", "fond"].enumerated() {
+                    guard let v = views[i] else { continue }
+                    let n = Double(v.framesDrawn - f0[i])
+                    detail += String(format: " %@ %.1f i/s (%.2f ms/draw)", label, n / dt, n > 0 ? (v.drawSeconds - d0[i]) / n * 1000 : 0)
+                }
+                report += String(format: "| %@ | %.2f %% | %.1f — %@ | %.0f | %.3f |\n", name, r.cpu, r.fps, detail, r.wakeups, r.watts)
                 next()
             }
         }

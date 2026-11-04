@@ -151,21 +151,23 @@ kernel void liquidStep(device float *h [[buffer(0)]],
     if (!valid) return;
 
     const float b = max(s.blur, 0.25f);
-    const float s1 = 2.0f * b, s2 = 5.0f * b, s3 = 9.0f * b;
-    const int radius = min(int(ceil(s3 * 2.2f)), 24);
-    float l1 = 0, l2 = 0, l3 = 0, w1 = 0, w2 = 0, w3 = 0;
+    const float s0 = (0.7f + 2.0f * s.fluidity) * b, s1 = 4.0f * b, s2 = 8.0f * b, s3 = 13.0f * b;
+    const int radius = min(int(ceil(s3 * 2.0f)), 28);
+    float l0 = 0, l1 = 0, l2 = 0, l3 = 0, w0 = 0, w1 = 0, w2 = 0, w3 = 0;
     for (int k = -radius; k <= radius; k++) {
         int j = clamp(int(i) + k, 0, C - 1);
         float x = th[j];
         float kk = float(k * k);
+        float a0 = exp(-kk / (2.0f * s0 * s0));
         float a1 = exp(-kk / (2.0f * s1 * s1));
         float a2 = exp(-kk / (2.0f * s2 * s2));
         float a3 = exp(-kk / (2.0f * s3 * s3));
+        l0 += x * a0; w0 += a0;
         l1 += x * a1; w1 += a1;
         l2 += x * a2; w2 += a2;
         l3 += x * a3; w3 += a3;
     }
-    layersOut[i] = float4(th[i], l1 / w1, l2 / w2, l3 / w3);
+    layersOut[i] = float4(l0 / w0, l1 / w1, l2 / w2, l3 / w3);
     h[i] = hi;
     v[i] = vi;
     surfVel[i] = mix(0.0f, vi, s.fluidity) + (1.0f - s.fluidity) * (t - h0) / max(s.dt, 1e-3f);
@@ -219,9 +221,8 @@ fragment float4 fragLiquid(VOut in [[stage_in]],
     float x = (uv.x - u.plotL) / plotW;
     float alpha = u.opacity * u.surfaceAlpha;
 
-    if (u.trailStrength > 0.0f) {
-        col += trail.sample(smp, float2(uv.x, 1.0f - uv.y)).rgb * u.trailStrength * u.opacity;
-    }
+    float3 trailCol = u.trailStrength > 0.0f ? trail.sample(smp, float2(uv.x, 1.0f - uv.y)).rgb * u.trailStrength * u.opacity : float3(0.0f);
+    float frontInside = 0.0f;
 
     if (x >= 0.0f && x <= 1.0f && uv.y >= u.plotB - 0.002f) {
         const int C = int(u.columns);
@@ -242,8 +243,9 @@ fragment float4 fragLiquid(VOut in [[stage_in]],
             float d = (yPx - surf) * rsqrt(1.0f + slope * slope);   // > 0 above the surface
             float inside = 1.0f - smoothstep(-aa, aa, d);
             float depth = clamp((surf - yPx) / max(surf, 1.0f), 0.0f, 1.0f);
-            float3 fill = shadeLinear(lut, x, hgt * kLayerBright[j]);
-            fill *= mix(1.0f, 0.14f, pow(depth, 0.55f));
+            float3 fill = shadeLinear(lut, x, hgt * kLayerBright[j] * 0.85f);
+            fill *= mix(0.80f, 0.05f, pow(depth, 0.40f));
+            if (j == 0) frontInside = inside;
             col = mix(col, fill, inside * kLayerAlpha[j] * alpha);
             if (j <= 1) {
                 float w = (j == 0 ? 1.1f : 2.2f) * u.pixelScale;
@@ -267,6 +269,7 @@ fragment float4 fragLiquid(VOut in [[stage_in]],
             col += shadeLinear(lut, x, 0.55f) * line * 0.35f * u.opacity * step(0.004f, hh.x);
         }
     }
+    col += trailCol * (1.0f - 0.85f * frontInside);
     return finish(col, px, u);
 }
 
@@ -280,9 +283,10 @@ fragment float4 fragTrail(VOut in [[stage_in]],
     float2 uv = in.uv;
     float2 tc = float2(uv.x, 1.0f - uv.y);
     float2 texel = 1.0f / float2(prev.get_width(), prev.get_height());
-    float2 src = tc + float2(0.0f, texel.y * 0.55f);   // slow upward drift
-    float3 p = prev.sample(smp, src).rgb * 0.5f
-             + (prev.sample(smp, src + float2(texel.x, 0)).rgb + prev.sample(smp, src - float2(texel.x, 0)).rgb) * 0.25f;
+    float2 src = tc + float2(0.0f, texel.y * 0.30f);   // slow upward drift
+    float3 p = prev.sample(smp, src).rgb * 0.36f
+             + (prev.sample(smp, src + float2(texel.x * 1.5f, 0)).rgb + prev.sample(smp, src - float2(texel.x * 1.5f, 0)).rgb) * 0.22f
+             + (prev.sample(smp, src + float2(0, texel.y * 1.5f)).rgb + prev.sample(smp, src - float2(texel.x * 3.0f, -texel.y)).rgb) * 0.10f;
     float3 ink = float3(0.0f);
     float plotW = u.plotR - u.plotL, plotH = u.plotT - u.plotB;
     float x = (uv.x - u.plotL) / plotW;
@@ -293,8 +297,8 @@ fragment float4 fragTrail(VOut in [[stage_in]],
         float hgt = clamp(hv.x, 0.0f, 1.0f);
         float plotPx = plotH * u.viewH * u.heightScale;
         float d = (uv.y - u.plotB) * u.viewH - hgt * plotPx;
-        float w = 5.0f * u.pixelScale;
-        ink = shadeLinear(lut, x, hgt) * exp(-d * d / (2.0f * w * w)) * hgt;
+        float w = 7.0f * u.pixelScale;
+        ink = shadeLinear(lut, x, hgt) * exp(-d * d / (2.0f * w * w)) * hgt * 0.6f;
     }
     return float4(p * u.trailDecay + ink * (1.0f - u.trailDecay) * 1.6f, 1.0f);
 }
@@ -379,8 +383,8 @@ fragment float4 fragSpectro(VOut in [[stage_in]],
         float idx = u.spectroHead + 1.0f + x * (W - 1.0f);
         float v = spec.sample(smp, float2((idx + 0.5f) / W, y)).r;
         float fadeOld = smoothstep(0.0f, 0.12f, x);   // oldest columns dissolve
-        float3 c = shadeLinear(lut, y, v);
-        col = mix(col, c, smoothstep(0.02f, 0.75f, v) * u.opacity * fadeOld);
+        float3 c = shadeLinear(lut, y, pow(v, 1.25f));
+        col = mix(col, c, smoothstep(0.04f, 0.95f, v) * 0.85f * u.opacity * fadeOld);
     }
     return finish(col, px, u);
 }

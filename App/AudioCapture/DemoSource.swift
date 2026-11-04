@@ -8,7 +8,7 @@ final class DemoSource {
     private let engine: AnalysisEngine
     let sampleRate: Double = 48000
     private var timer: DispatchSourceTimer?
-    private let block = 960
+    private let block = 480
     private var buffer: [Float]
     private var t: Int = 0
     private var phases = [Double](repeating: 0, count: 8)
@@ -18,7 +18,7 @@ final class DemoSource {
 
     init(engine: AnalysisEngine) {
         self.engine = engine
-        buffer = [Float](repeating: 0, count: 960)
+        buffer = [Float](repeating: 0, count: 480)
     }
 
     func start() {

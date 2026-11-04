@@ -82,7 +82,9 @@ public final class SpectrumSmoother {
                 h[i] = s[i]; age[i] = 0
             } else {
                 age[i] += fdt
-                if age[i] > ht { h[i] = max(h[i] - fall, s[i]) }
+                // During silence the held peaks fall 6× faster so that everything
+                // reaches rest (and rendering stops) quickly.
+                if age[i] > ht || x <= -199 { h[i] = max(h[i] - (x <= -199 ? fall * 6 : fall), s[i]) }
             }
         }
     }

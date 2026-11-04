@@ -298,7 +298,7 @@ final class SpectrumRenderer {
         u.layerCount = mode == .curve ? 1 : Float(style.quality.layers)
         u.glow = mode == .curve ? 0.35 * style.quality.glow : style.quality.glow
         let trails = mode == .liquid && style.quality.trails
-        u.trailStrength = trails ? 0.55 : 0
+        u.trailStrength = trails ? 0.40 : 0
         u.fluidity = style.fluidity
         u.dither = 1
         u.plotL = style.plotL; u.plotB = style.plotB; u.plotR = style.plotR; u.plotT = style.plotT

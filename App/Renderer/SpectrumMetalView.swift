@@ -122,9 +122,15 @@ final class SpectrumMetalView: MTKView, MTKViewDelegate {
         return true
     }
 
+    private(set) var framesDrawn: UInt64 = 0
+    private(set) var drawSeconds: Double = 0
+
     func renderFrame(now: CFTimeInterval) {
         lastFrameTime = now
+        let t0 = CACurrentMediaTime()
         draw()
+        drawSeconds += CACurrentMediaTime() - t0
+        framesDrawn &+= 1
     }
 
     func draw(in view: MTKView) {
