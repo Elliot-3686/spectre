@@ -1,0 +1,9 @@
+.DS_Store
+build/
+DerivedData/
+.build/
+*.xcodeproj/
+!*.xcodeproj/project.xcworkspace/
+xcuserdata/
+Packages/SpectreCore/.build/
+out/

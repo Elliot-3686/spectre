@@ -1,0 +1,96 @@
+name: build
+
+on:
+  push:
+    branches-ignore: [ci-results]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  macos:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Environment
+        run: |
+          mkdir -p out
+          X=$(ls -d /Applications/Xcode_16*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$X" ]; then sudo xcode-select -s "$X"; fi
+          { sw_vers; xcodebuild -version; uname -m; sysctl -n machdep.cpu.brand_string; sysctl -n hw.ncpu;
+            system_profiler SPDisplaysDataType 2>/dev/null | head -25; } > out/env.txt 2>&1 || true
+          cat out/env.txt
+
+      - name: Core tests (SpectreCore, Accelerate)
+        id: tests
+        continue-on-error: true
+        working-directory: Packages/SpectreCore
+        run: |
+          set -o pipefail
+          swift test -c release -Xswiftc -enable-testing 2>&1 | tee ../../out/tests.txt
+
+      - name: Generate Xcode project
+        id: gen
+        if: hashFiles('project.yml') != ''
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          brew install xcodegen >/dev/null 2>&1 || brew install xcodegen
+          xcodegen generate 2>&1 | tee out/xcodegen.txt
+
+      - name: Build app (xcodebuild)
+        id: build
+        if: steps.gen.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          xcodebuild -project Spectre.xcodeproj -scheme Spectre -configuration Release \
+            -derivedDataPath build CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= \
+            build 2>&1 | tee out/build-full.log
+
+      - name: Snapshots, benchmark, CPU measurement
+        id: run
+        if: steps.build.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 12
+        run: |
+          APP=build/Build/Products/Release/Spectre.app
+          codesign -dv "$APP" > out/codesign.txt 2>&1 || true
+          "$APP/Contents/MacOS/Spectre" --snapshots out/snapshots > out/snapshots.log 2>&1 || echo "snapshots exit $?" >> out/snapshots.log
+          "$APP/Contents/MacOS/Spectre" --benchmark out/benchmark.md > out/benchmark.log 2>&1 || echo "benchmark exit $?" >> out/benchmark.log
+          "$APP/Contents/MacOS/Spectre" --demo --measure 40 --report out/cpu.md > out/cpu.log 2>&1 || echo "measure exit $?" >> out/cpu.log
+
+      - name: Package & publish release
+        if: steps.build.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          APP=build/Build/Products/Release/Spectre.app
+          ditto -c -k --keepParent "$APP" Spectre.zip
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest Spectre.zip --target "${{ github.sha }}" --prerelease \
+            --title "Spectre — dernière compilation" \
+            --notes "Compilé automatiquement depuis ${{ github.sha }}. Voir README pour l'installation."
+
+      - name: Publish CI results to branch ci-results
+        if: always()
+        run: |
+          echo "sha=${{ github.sha }} tests=${{ steps.tests.outcome }} gen=${{ steps.gen.outcome }} build=${{ steps.build.outcome }} run=${{ steps.run.outcome }}" > out/summary.txt
+          if [ -f out/build-full.log ]; then
+            grep -E "error:|warning: .*(deprecated|unused|never)|\*\* BUILD" out/build-full.log | sort -u | head -300 > out/build-errors.txt || true
+            tail -c 60000 out/build-full.log > out/build-tail.txt
+            rm out/build-full.log
+          fi
+          cd out
+          git init -q
+          git checkout -q -b ci-results
+          git add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "CI ${{ github.sha }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-results
