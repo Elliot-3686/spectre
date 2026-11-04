@@ -14,7 +14,7 @@ final class FrameScheduler {
 
     /// (some view needs audio, highest fps wanted)
     var onDemandChanged: ((Bool, Double) -> Void)?
-    /// Called at most ~8×/s on the main thread while frames are drawn (read-outs).
+    /// Called at most 4×/s on the main thread while frames are drawn (read-outs).
     var onReadoutTick: (() -> Void)?
     private var lastReadout: CFTimeInterval = 0
 
@@ -81,7 +81,7 @@ final class FrameScheduler {
             drew = true
             framesDrawn &+= 1
         }
-        if drew, now - lastReadout > 0.125 {
+        if drew, now - lastReadout > 0.25 {
             lastReadout = now
             onReadoutTick?()
         }

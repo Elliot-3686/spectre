@@ -40,7 +40,6 @@ struct MainView: View {
     @ObservedObject var model: AppModel
     @ObservedObject var settings: AppSettings
     var openSettings: () -> Void
-    @State private var hover: CGPoint?
 
     var body: some View {
         GeometryReader { geo in
@@ -53,11 +52,9 @@ struct MainView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 AxesOverlay(mode: settings.mode, scale: settings.scale, size: geo.size)
+                    .equatable()
                     .allowsHitTesting(false)
-                if let p = hover {
-                    HoverReadout(model: model, mode: settings.mode, location: p, size: geo.size)
-                        .allowsHitTesting(false)
-                }
+                HoverLayer(model: model, mode: settings.mode, size: geo.size)
                 ReadoutView(live: model.live, truePeak: settings.truePeak)
                     .padding(.leading, 56).padding(.top, 34)
                     .allowsHitTesting(false)
@@ -69,13 +66,6 @@ struct MainView: View {
                 .frame(maxWidth: .infinity, alignment: .topTrailing)
                 StatusOverlay(model: model, settings: settings)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-            }
-            .contentShape(Rectangle())
-            .onContinuousHover { phase in
-                switch phase {
-                case let .active(p): hover = p
-                case .ended: hover = nil
-                }
             }
         }
         .background(Color(red: 0.03, green: 0.035, blue: 0.045))
@@ -178,7 +168,32 @@ struct ControlsBar: View {
 
 // MARK: - Axes
 
-struct AxesOverlay: View {
+/// Mouse tracking lives in its own view: moving the mouse only redraws this layer.
+struct HoverLayer: View {
+    let model: AppModel
+    let mode: VisualMode
+    let size: CGSize
+    @State private var hover: CGPoint?
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            Color.clear.contentShape(Rectangle())
+            if let p = hover {
+                HoverReadout(model: model, mode: mode, location: p, size: size).allowsHitTesting(false)
+            }
+        }
+        .onContinuousHover { phase in
+            switch phase {
+            case let .active(p): hover = p
+            case .ended: hover = nil
+            }
+        }
+    }
+}
+
+struct AxesOverlay: View, Equatable {
+    static func == (a: AxesOverlay, b: AxesOverlay) -> Bool { a.mode == b.mode && a.scale == b.scale && a.size == b.size }
+
     let mode: VisualMode
     let scale: SpectrumScale
     let size: CGSize

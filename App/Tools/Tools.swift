@@ -328,21 +328,95 @@ final class MeasurementRun {
     }
 }
 
+/// Per-thread CPU time (Mach), to know exactly where the CPU goes.
+enum ThreadCPU {
+    struct Sample { var name: String; var seconds: Double }
+
+    static var mainThreadID: UInt64 = 0
+    static func recordMainThread() { pthread_threadid_np(nil, &mainThreadID) }
+
+    static func sample() -> [UInt64: Sample] {
+        var list: thread_act_array_t?
+        var count: mach_msg_type_number_t = 0
+        guard task_threads(mach_task_self_, &list, &count) == KERN_SUCCESS, let list else { return [:] }
+        defer {
+            vm_deallocate(mach_task_self_, vm_address_t(UInt(bitPattern: list)),
+                          vm_size_t(Int(count) * MemoryLayout<thread_t>.stride))
+        }
+        var out: [UInt64: Sample] = [:]
+        for i in 0..<Int(count) {
+            let th = list[i]
+            var info = thread_basic_info()
+            var n = mach_msg_type_number_t(MemoryLayout<thread_basic_info_data_t>.size / MemoryLayout<integer_t>.size)
+            let kr = withUnsafeMutablePointer(to: &info) {
+                $0.withMemoryRebound(to: integer_t.self, capacity: Int(n)) { thread_info(th, thread_flavor_t(THREAD_BASIC_INFO), $0, &n) }
+            }
+            var ident = thread_identifier_info()
+            var n2 = mach_msg_type_number_t(MemoryLayout<thread_identifier_info_data_t>.size / MemoryLayout<integer_t>.size)
+            _ = withUnsafeMutablePointer(to: &ident) {
+                $0.withMemoryRebound(to: integer_t.self, capacity: Int(n2)) { thread_info(th, thread_flavor_t(THREAD_IDENTIFIER_INFO), $0, &n2) }
+            }
+            var name = ""
+            if let pt = pthread_from_mach_thread_np(th) {
+                var buf = [CChar](repeating: 0, count: 128)
+                pthread_getname_np(pt, &buf, 128)
+                name = String(cString: buf)
+            }
+            if name.isEmpty, ident.dispatch_qaddr != 0 { name = "file dispatch" }
+            if ident.thread_id == mainThreadID { name = "principal (UI)" }
+            if name.isEmpty { name = "sans nom" }
+            if kr == KERN_SUCCESS {
+                let secs = Double(info.user_time.seconds) + Double(info.user_time.microseconds) / 1e6
+                         + Double(info.system_time.seconds) + Double(info.system_time.microseconds) / 1e6
+                out[ident.thread_id] = Sample(name: name, seconds: secs)
+            }
+            mach_port_deallocate(mach_task_self_, th)
+        }
+        return out
+    }
+
+    /// "% of one core" per thread between two samples, biggest first (grouped by name).
+    static func report(from a: [UInt64: Sample], to b: [UInt64: Sample], seconds: Double) -> String {
+        var byName: [String: Double] = [:]
+        for (id, s) in b {
+            let d = s.seconds - (a[id]?.seconds ?? 0)
+            if d > 0 { byName[s.name, default: 0] += d }
+        }
+        return byName.sorted { $0.value > $1.value }.prefix(10)
+            .map { String(format: "  %6.2f %%  %@", $0.value / seconds * 100, $0.key) }
+            .joined(separator: "\n")
+    }
+}
+
 enum Diagnostics {
     static func run(model: AppModel, seconds: Double, completion: @escaping (String) -> Void) {
         let meter = PhaseMeter(frames: model.scheduler.framesDrawn)
-        // Precision self-test on a private analyzer (does not disturb the live one).
-        var precision = ""
-        let cfg = AnalyzerConfiguration(sampleRate: 48000, fftSizes: [32768, 8192, 2048], hop: 800)
-        for f in [50.37, 440.21, 1000.0, 4999.7, 15013.3] {
-            let a = SpectrumAnalyzer(configuration: cfg)
-            let s = SignalGenerator.sine(frequency: f, amplitude: 0.5, sampleRate: 48000, count: 32768 + 4800)
-            s.withUnsafeBufferPointer { _ = a.process($0.baseAddress!, count: $0.count) }
-            let p = a.result.dominant
-            precision += String(format: "  %.2f Hz → %.4f Hz (%.3f dBFS)\n", f, p?.frequency ?? 0, p?.levelDB ?? -200)
-        }
+        let threads0 = ThreadCPU.sample()
+        let t0 = CACurrentMediaTime()
+        let views = [model.windowView, model.wallpaper.view]
+        let f0 = views.map { $0?.framesDrawn ?? 0 }
+        let d0 = views.map { $0?.drawSeconds ?? 0 }
         DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
             let r = meter.finish(frames: model.scheduler.framesDrawn)
+            let dt = CACurrentMediaTime() - t0
+            let threads = ThreadCPU.report(from: threads0, to: ThreadCPU.sample(), seconds: dt)
+            var perView = ""
+            for (i, label) in ["fenêtre", "fond d'écran"].enumerated() {
+                guard let v = views[i] else { continue }
+                let n = Double(v.framesDrawn - f0[i])
+                perView += String(format: "  %@ : %.1f i/s, %.2f ms CPU principal par image, %d×%d px\n", label, n / dt,
+                                  n > 0 ? (v.drawSeconds - d0[i]) / n * 1000 : 0, Int(v.drawableSize.width), Int(v.drawableSize.height))
+            }
+            // Precision self-test AFTER the measurement, on a private analyzer.
+            var precision = ""
+            let cfg = AnalyzerConfiguration(sampleRate: 48000, fftSizes: [32768, 8192, 2048], hop: 800)
+            for f in [50.37, 440.21, 1000.0, 4999.7, 15013.3] {
+                let a = SpectrumAnalyzer(configuration: cfg)
+                let s = SignalGenerator.sine(frequency: f, amplitude: 0.5, sampleRate: 48000, count: 32768 + 4800)
+                s.withUnsafeBufferPointer { _ = a.process($0.baseAddress!, count: $0.count) }
+                let p = a.result.dominant
+                precision += String(format: "  %.2f Hz → %.4f Hz (%.3f dBFS)\n", f, p?.frequency ?? 0, p?.levelDB ?? -200)
+            }
             let os = ProcessInfo.processInfo.operatingSystemVersionString
             var text = "Spectre — diagnostic\n"
             text += "macOS \(os)\n"
@@ -352,6 +426,8 @@ enum Diagnostics {
             text += String(format: "CPU (process) : %.2f %% · %.1f images/s · %.0f réveils/s · %.3f W estimés\n", r.cpu, r.fps, r.wakeups, r.watts)
             text += "Qualité : fenêtre \(model.windowLevel.label), fond d'écran \(model.wallpaperLevel.label)\n"
             text += "Batterie : \(model.power.onBattery ? "oui" : "non") · économie d'énergie : \(model.power.lowPowerMode ? "oui" : "non")\n"
+            text += "Vues :\n" + perView
+            text += "CPU par thread (% d'un cœur) :\n" + threads + "\n"
             text += "Précision (sinus de synthèse) :\n" + precision
             completion(text)
         }

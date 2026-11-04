@@ -205,10 +205,14 @@ final class AppModel: ObservableObject {
         snap.lock.lock()
         var r = Readout()
         r.hasSignal = !snap.isSilent && capture.isRunning
-        r.peaks = Array(snap.peaks.prefix(snap.peakCount))
-        r.rmsDB = snap.rmsDB
-        r.samplePeakDB = snap.samplePeakDB
-        r.truePeakDB = snap.truePeakDB
+        // Quantised to the displayed precision: SwiftUI only redraws when the text changes.
+        func q(_ v: Float) -> Float { (v * 10).rounded() / 10 }
+        r.peaks = snap.peaks.prefix(snap.peakCount).map {
+            Peak(frequency: ($0.frequency * 100).rounded() / 100, levelDB: q($0.levelDB))
+        }
+        r.rmsDB = q(snap.rmsDB)
+        r.samplePeakDB = q(snap.samplePeakDB)
+        r.truePeakDB = q(snap.truePeakDB)
         snap.lock.unlock()
         if !r.hasSignal { r.peaks = [] }
         if !textVisible { r = Readout() }

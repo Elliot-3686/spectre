@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     private var measurement: MeasurementRun?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        ThreadCPU.recordMainThread()
         model = AppModel()
         buildMainMenu()
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
