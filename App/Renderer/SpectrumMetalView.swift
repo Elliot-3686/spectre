@@ -116,7 +116,7 @@ final class SpectrumMetalView: MTKView, MTKViewDelegate {
     /// Should this view draw now? (fps cap + rest)
     func wantsFrame(at now: CFTimeInterval, newData: Bool) -> Bool {
         guard isOnScreen, targetFPS > 0 else { return false }
-        if now - lastFrameTime < 0.92 / targetFPS { return false }
+        if now - lastFrameTime < 0.75 / targetFPS { return false }
         if renderer.isAtRest && !newData { return false }
         if renderer.isAtRest && snapshot.isAtRestUnlocked { return false }
         return true

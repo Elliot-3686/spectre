@@ -44,6 +44,7 @@ final class AppModel: ObservableObject {
         capture.onRunningChange = { [weak self] running in
             guard let self else { return }
             self.scheduler.captureRunning = running
+            self.updateActivity()
             if running { self.engine.stopSilenceFeed() } else { self.engine.startSilenceFeed() }
             self.refreshReadout()
         }
@@ -124,7 +125,23 @@ final class AppModel: ObservableObject {
     }
 
     /// Precision follows the most demanding visible view.
+    /// Prevents App Nap from throttling timers and the main queue only while a
+    /// visible spectrum is actually animated; released as soon as it rests.
+    private var activity: NSObjectProtocol?
+
+    private func updateActivity() {
+        let needed = capture.isRunning && scheduler.demand.0
+        if needed && activity == nil {
+            activity = ProcessInfo.processInfo.beginActivity(options: [.userInitiatedAllowingIdleSystemSleep, .latencyCritical],
+                                                             reason: "Visualisation audio en temps réel")
+        } else if !needed, let a = activity {
+            ProcessInfo.processInfo.endActivity(a)
+            activity = nil
+        }
+    }
+
     func updateAnalyzer() {
+        updateActivity()
         let windowActive = (windowView?.isOnScreen ?? false) && !scheduler.suspended
         let level = windowActive ? windowLevel : wallpaperLevel
         let fps = max(scheduler.demand.1, 20)
