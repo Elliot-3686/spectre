@@ -15,18 +15,18 @@ enum CPUClock {
     }
 
     static func wakeups() -> (interrupt: UInt64, idle: UInt64) {
-        var info = rusage_info_v4()
+        var info = rusage_info_v6()
         let r = withUnsafeMutablePointer(to: &info) { p in
-            p.withMemoryRebound(to: rusage_info_t?.self, capacity: 1) { proc_pid_rusage(getpid(), RUSAGE_INFO_V4, $0) }
+            p.withMemoryRebound(to: rusage_info_t?.self, capacity: 1) { proc_pid_rusage(getpid(), RUSAGE_INFO_V6, $0) }
         }
         guard r == 0 else { return (0, 0) }
         return (info.ri_interrupt_wkups, info.ri_pkg_idle_wkups)
     }
 
     static func energyNanojoules() -> UInt64 {
-        var info = rusage_info_v4()
+        var info = rusage_info_v6()
         let r = withUnsafeMutablePointer(to: &info) { p in
-            p.withMemoryRebound(to: rusage_info_t?.self, capacity: 1) { proc_pid_rusage(getpid(), RUSAGE_INFO_V4, $0) }
+            p.withMemoryRebound(to: rusage_info_t?.self, capacity: 1) { proc_pid_rusage(getpid(), RUSAGE_INFO_V6, $0) }
         }
         return r == 0 ? info.ri_energy_nj : 0
     }

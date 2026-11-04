@@ -69,7 +69,7 @@ struct SettingsView: View {
                 Toggle("Afficher le spectre en fond d'écran", isOn: $settings.wallpaperEnabled)
                 Picker("Écran", selection: $settings.wallpaperScreen) {
                     Text("Écran principal").tag("")
-                    ForEach(WallpaperController.screens(), id: \.id) { s in Text(s.name).tag(s.id) }
+                    ForEach(WallpaperController.screens()) { s in Text(s.name).tag(s.id) }
                 }
                 Picker("Mode", selection: $settings.wallpaperMode) {
                     ForEach(VisualMode.allCases) { Text($0.label).tag($0) }

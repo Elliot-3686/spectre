@@ -24,8 +24,10 @@ final class WallpaperController {
             }
     }
 
-    static func screens() -> [(id: String, name: String)] {
-        NSScreen.screens.map { (id: id(of: $0), name: $0.localizedName) }
+    struct ScreenInfo: Identifiable, Hashable { let id: String; let name: String }
+
+    static func screens() -> [ScreenInfo] {
+        NSScreen.screens.map { ScreenInfo(id: id(of: $0), name: $0.localizedName) }
     }
 
     static func id(of screen: NSScreen) -> String {
