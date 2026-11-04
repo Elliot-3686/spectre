@@ -1,0 +1,30 @@
+*** Sampled system activity (Wed Nov  4 19:49:09 2026 +0000) (5085.10ms elapsed) ***
+*** Running tasks ***
+Name                               ID     CPU ms/s  User%  Deadlines (<2 ms, 2-5 ms)  Wakeups (Intr, Pkg idle)  Energy Impact
+Spectre                            3764   107.97    75.76  0.00    0.00               40.90   0.00              10.80           
+ALL_TASKS                          -2     3041.71   64.27  31.07   0.00               1274.51 0.00              304.52          
+*** Sampled system activity (Wed Nov  4 19:49:15 2026 +0000) (5053.49ms elapsed) ***
+*** Running tasks ***
+Name                               ID     CPU ms/s  User%  Deadlines (<2 ms, 2-5 ms)  Wakeups (Intr, Pkg idle)  Energy Impact
+Spectre                            3764   90.34     74.30  0.00    0.00               44.14   0.40              9.04            
+ALL_TASKS                          -2     2728.89   66.60  8.90    0.40               2086.28 127.24            276.33          
+*** Sampled system activity (Wed Nov  4 19:49:20 2026 +0000) (5050.05ms elapsed) ***
+*** Running tasks ***
+Name                               ID     CPU ms/s  User%  Deadlines (<2 ms, 2-5 ms)  Wakeups (Intr, Pkg idle)  Energy Impact
+Spectre                            3764   106.87    79.15  0.00    0.00               41.78   0.00              10.69           
+ALL_TASKS                          -2     2980.37   66.89  8.91    0.79               1478.01 4.16              298.46          
+*** Sampled system activity (Wed Nov  4 19:49:25 2026 +0000) (5017.27ms elapsed) ***
+*** Running tasks ***
+Name                               ID     CPU ms/s  User%  Deadlines (<2 ms, 2-5 ms)  Wakeups (Intr, Pkg idle)  Energy Impact
+Spectre                            3764   60.52     81.44  0.00    0.00               41.85   0.00              6.05            
+ALL_TASKS                          -2     2979.41   67.17  4.38    0.60               1082.86 2.19              298.29          
+*** Sampled system activity (Wed Nov  4 19:49:30 2026 +0000) (5072.60ms elapsed) ***
+*** Running tasks ***
+Name                               ID     CPU ms/s  User%  Deadlines (<2 ms, 2-5 ms)  Wakeups (Intr, Pkg idle)  Energy Impact
+Spectre                            3764   51.46     78.81  0.00    0.00               41.21   0.99              5.17            
+ALL_TASKS                          -2     2706.10   70.58  9.86    0.00               1305.05 129.32            273.66          
+*** Sampled system activity (Wed Nov  4 19:49:35 2026 +0000) (5049.29ms elapsed) ***
+*** Running tasks ***
+Name                               ID     CPU ms/s  User%  Deadlines (<2 ms, 2-5 ms)  Wakeups (Intr, Pkg idle)  Energy Impact
+Spectre                            3764   59.05     81.44  0.00    0.00               42.18   0.00              5.91            
+ALL_TASKS                          -2     2758.85   71.10  25.75   0.20               1194.82 74.86             277.67          

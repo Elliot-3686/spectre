@@ -1,0 +1,121 @@
+Building for production...
+[0/8] /Users/runner/work/spectre/spectre/Packages/SpectreCore/.build/arm64-apple-macosx/release/SpectreCorePackageTests.derived/runner.swift
+[1/8] Write sources
+[4/8] Write swift-version--79AA4F9932D1E87A.txt
+[5/8] Compiling CSpectreRing SPSCRing.c
+[7/9] Compiling SpectreCore Buffers.swift
+[8/10] Compiling SpectreCoreTests AnalyzerPrecisionTests.swift
+[9/11] Compiling SpectreCorePackageTests runner.swift
+[9/11] Write Objects.LinkFileList
+[10/11] Linking SpectreCorePackageTests
+Build complete! (39.20s)
+Test Suite 'All tests' started at 2026-11-04 19:47:20.259.
+Test Suite 'SpectreCorePackageTests.xctest' started at 2026-11-04 19:47:20.262.
+Test Suite 'AnalyzerPrecisionTests' started at 2026-11-04 19:47:20.262.
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testA4And1000Hz]' started.
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testA4And1000Hz]' passed (0.042 seconds).
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testChord]' started.
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testChord]' passed (0.008 seconds).
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testFlatTopDisplayAmplitude]' started.
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testFlatTopDisplayAmplitude]' passed (0.007 seconds).
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testFullScaleCalibration]' started.
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testFullScaleCalibration]' passed (0.076 seconds).
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testLogSweepTracking]' started.
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testLogSweepTracking]' passed (0.177 seconds).
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testPerformance]' started.
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testPerformance]' passed (0.097 seconds).
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testPinkNoiseIsFlatInThirdOctaves]' started.
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testPinkNoiseIsFlatInThirdOctaves]' passed (0.192 seconds).
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testPureSines]' started.
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testPureSines]' passed (0.213 seconds).
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testSilence]' started.
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testSilence]' passed (0.002 seconds).
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testSmootherAttackRelease]' started.
+Test Case '-[SpectreCoreTests.AnalyzerPrecisionTests testSmootherAttackRelease]' passed (0.000 seconds).
+Test Suite 'AnalyzerPrecisionTests' passed at 2026-11-04 19:47:21.078.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.815 (0.816) seconds
+Test Suite 'PaletteTests' started at 2026-11-04 19:47:21.078.
+Test Case '-[SpectreCoreTests.PaletteTests testOKLabRoundTrip]' started.
+Test Case '-[SpectreCoreTests.PaletteTests testOKLabRoundTrip]' passed (0.000 seconds).
+Test Case '-[SpectreCoreTests.PaletteTests testShadingNeverWhiteNorFluo]' started.
+Test Case '-[SpectreCoreTests.PaletteTests testShadingNeverWhiteNorFluo]' passed (0.001 seconds).
+Test Case '-[SpectreCoreTests.PaletteTests testZoneCentersMatchBrief]' started.
+Test Case '-[SpectreCoreTests.PaletteTests testZoneCentersMatchBrief]' passed (0.000 seconds).
+Test Suite 'PaletteTests' passed at 2026-11-04 19:47:21.079.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'SpectreCorePackageTests.xctest' passed at 2026-11-04 19:47:21.079.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.816 (0.817) seconds
+Test Suite 'All tests' passed at 2026-11-04 19:47:21.079.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.816 (0.819) seconds
+ACCORD [multi-res 32768/8192/2048] : 220.00→220.000 277.18→277.180 329.63→329.630 440.00→440.000 1318.51→1318.510
+ACCORD [8192 seule] : 220.00→220.001 277.18→277.180 329.63→329.632 440.00→440.000 1318.51→1318.510
+CALIBRATION hann : pic 0.000 dBFS, RMS -2.998 dBFS, true peak -0.000 dBTP
+CALIBRATION blackmanHarris : pic 0.000 dBFS, RMS -2.998 dBFS, true peak -0.000 dBTP
+CALIBRATION flatTop : pic -0.000 dBFS, RMS -2.998 dBFS, true peak -0.000 dBTP
+BALAYAGE 20 Hz→20 kHz/20 s: erreur relative max graves 1.165 %, médiums 0.432 %, aigus 0.226 % (mesures : 11 / 15 / 21)
+
+COÛT CPU DE L'ANALYSE (1 cœur)
+  Haut  32768/8192/2048 @60 i/s : 110.7 µs/trame → 0.66 % d'un cœur
+  Moyen 16384/4096      @30 i/s : 79.7 µs/trame → 0.24 % d'un cœur
+  Éco   4096            @20 i/s : 67.0 µs/trame → 0.13 % d'un cœur
+
+BRUIT ROSE (tiers d'octave, relatif à 1 kHz): 40:-0.3 50:-0.3 63:-0.5 80:-0.3 100:-0.4 125:-0.2 160:+0.1 200:-0.4 250:-0.1 315:-0.0 400:-0.2 500:-0.2 630:-0.1 800:-0.7 1k:+0.0 1,2k:+0.1 1,6k:-0.2 2k:-0.2 2,5k:-0.6 3,1k:-0.2 4k:-0.1 5k:-0.1 6,3k:-0.1 8k:-0.3 10k:+0.1
+
+SINUS PURS (amplitude 0,5 → −6,02 dBFS)
+  [multi-res 32768/8192/2048]
+        50.00 Hz →    50.0000 Hz  erreur -0.0000 Hz  niveau -6.021 dBFS
+       440.00 Hz →   440.0000 Hz  erreur -0.0000 Hz  niveau -6.021 dBFS
+      1000.00 Hz →  1000.0000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+      5000.00 Hz →  5000.0000 Hz  erreur -0.0000 Hz  niveau -6.021 dBFS
+     15000.00 Hz → 15000.0000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+        50.37 Hz →    50.3700 Hz  erreur +0.0000 Hz  niveau -6.020 dBFS
+       440.21 Hz →   440.2100 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+       997.30 Hz →   997.3000 Hz  erreur -0.0000 Hz  niveau -6.021 dBFS
+      4999.70 Hz →  4999.7000 Hz  erreur -0.0000 Hz  niveau -6.021 dBFS
+     15013.30 Hz → 15013.3000 Hz  erreur -0.0000 Hz  niveau -6.021 dBFS
+        82.41 Hz →    82.4100 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+       123.47 Hz →   123.4700 Hz  erreur -0.0000 Hz  niveau -6.021 dBFS
+  [8192 seule]
+        50.00 Hz →    50.0003 Hz  erreur +0.0003 Hz  niveau -6.021 dBFS
+       440.00 Hz →   440.0000 Hz  erreur -0.0000 Hz  niveau -6.021 dBFS
+      1000.00 Hz →  1000.0000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+      5000.00 Hz →  5000.0000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+     15000.00 Hz → 15000.0000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+        50.37 Hz →    50.3709 Hz  erreur +0.0009 Hz  niveau -6.021 dBFS
+       440.21 Hz →   440.2100 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+       997.30 Hz →   997.3000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+      4999.70 Hz →  4999.7000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+     15013.30 Hz → 15013.3000 Hz  erreur -0.0000 Hz  niveau -6.021 dBFS
+        82.41 Hz →    82.4100 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+       123.47 Hz →   123.4700 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+  [économie 4096]
+        50.00 Hz →    50.0000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+       440.00 Hz →   440.0000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+      1000.00 Hz →  1000.0000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+      5000.00 Hz →  5000.0000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+     15000.00 Hz → 15000.0000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+        50.37 Hz →    50.3697 Hz  erreur -0.0003 Hz  niveau -6.017 dBFS
+       440.21 Hz →   440.2100 Hz  erreur -0.0000 Hz  niveau -6.021 dBFS
+       997.30 Hz →   997.3000 Hz  erreur -0.0000 Hz  niveau -6.021 dBFS
+      4999.70 Hz →  4999.7000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+     15013.30 Hz → 15013.3000 Hz  erreur -0.0000 Hz  niveau -6.021 dBFS
+        82.41 Hz →    82.4101 Hz  erreur +0.0001 Hz  niveau -6.021 dBFS
+       123.47 Hz →   123.4700 Hz  erreur -0.0000 Hz  niveau -6.021 dBFS
+  [44,1 kHz multi-res]
+        50.00 Hz →    50.0000 Hz  erreur -0.0000 Hz  niveau -6.021 dBFS
+       440.00 Hz →   440.0000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+      1000.00 Hz →  1000.0000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+      5000.00 Hz →  5000.0000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+     15000.00 Hz → 15000.0000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+        50.37 Hz →    50.3700 Hz  erreur -0.0000 Hz  niveau -6.021 dBFS
+       440.21 Hz →   440.2100 Hz  erreur -0.0000 Hz  niveau -6.021 dBFS
+       997.30 Hz →   997.3000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+      4999.70 Hz →  4999.7000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+     15013.30 Hz → 15013.3000 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+        82.41 Hz →    82.4100 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+       123.47 Hz →   123.4700 Hz  erreur +0.0000 Hz  niveau -6.021 dBFS
+
+◇ Test run started.
+↳ Testing Library Version: 124.4
+↳ Target Platform: arm64e-apple-macos14.0
+✔ Test run with 0 tests passed after 0.001 seconds.
