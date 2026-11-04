@@ -9,6 +9,12 @@ Analyseur de spectre temps réel pour **le son de Spotify uniquement**, en « li
 4. Ouvrez Spectre, puis acceptez **« Autoriser l'accès à l'audio »**. En cas de refus : Réglages Système › Confidentialité et sécurité › Enregistrement de l'écran et de l'audio système › Spectre.
 5. Lancez un morceau dans Spotify. Le fond d'écran s'active depuis l'icône 〰︎ de la barre des menus.
 
+## Captures
+![Planche des modes, thème Sobre](docs/captures/planche_sobre.jpg)
+![Thèmes Monochrome et Braise](docs/captures/planche_themes.jpg)
+
+Captures pleine résolution : branche [`ci-results`](https://github.com/Elliot-3686/spectre/tree/ci-results/snapshots).
+
 ## Utilisation
 - **Barre des menus** : ouvrir la fenêtre, fond d'écran on/off, écran, visuel, thème, mode démo, réglages, diagnostic.
 - **Visuels** : Liquide (par défaut), Sable, Courbe, Tiers d'octave (31 bandes ISO), Spectrogramme.
