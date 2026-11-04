@@ -65,7 +65,10 @@ jobs:
           codesign -dv "$APP" > out/codesign.txt 2>&1 || true
           "$APP/Contents/MacOS/Spectre" --snapshots out/snapshots > out/snapshots.log 2>&1 || echo "snapshots exit $?" >> out/snapshots.log
           "$APP/Contents/MacOS/Spectre" --benchmark out/benchmark.md > out/benchmark.log 2>&1 || echo "benchmark exit $?" >> out/benchmark.log
+          ( sleep 8; sudo powermetrics --samplers tasks --show-process-energy -i 5000 -n 6 > out/powermetrics.txt 2>&1 || true ) &
           "$APP/Contents/MacOS/Spectre" --demo --measure 40 --report out/cpu.md > out/cpu.log 2>&1 || echo "measure exit $?" >> out/cpu.log
+          wait || true
+          if [ -f out/powermetrics.txt ]; then grep -E "Name|Spectre|ALL_TASKS|\*\*\*" out/powermetrics.txt > out/powermetrics-spectre.txt || true; fi
 
       - name: Package & publish release
         if: steps.build.outcome == 'success'
