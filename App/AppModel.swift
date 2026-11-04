@@ -184,7 +184,16 @@ final class AppModel: ObservableObject {
 
     // MARK: - Read-outs
 
+    /// Text is only refreshed when somebody can read it (window visible or wallpaper text shown).
+    var textVisible: Bool {
+        let s = settings
+        let wallpaperText = s.wallpaperEnabled && (s.wallpaperShowFrequency || s.wallpaperShowNote || s.wallpaperShowTitle)
+            && (wallpaper.view?.isOnScreen ?? false)
+        return (windowView?.isOnScreen ?? false) || wallpaperText
+    }
+
     func refreshReadout() {
+        if !textVisible && readout.hasSignal == false { return }
         let snap = engine.snapshot
         snap.lock.lock()
         var r = Readout()
@@ -195,6 +204,7 @@ final class AppModel: ObservableObject {
         r.truePeakDB = snap.truePeakDB
         snap.lock.unlock()
         if !r.hasSignal { r.peaks = [] }
+        if !textVisible { r = Readout() }
         if r != readout { readout = r }
     }
 

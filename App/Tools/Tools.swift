@@ -309,10 +309,13 @@ final class MeasurementRun {
             let f0 = views.map { $0?.framesDrawn ?? 0 }
             let d0 = views.map { $0?.drawSeconds ?? 0 }
             let t0 = CACurrentMediaTime()
+            let s0 = model.engine.samplesProcessed, a0 = model.engine.framesPublished, dr0 = model.engine.ring.dropped
             DispatchQueue.main.asyncAfter(deadline: .now() + length) { [self] in
                 let r = meter.finish(frames: model.scheduler.framesDrawn)
                 let dt = CACurrentMediaTime() - t0
-                var detail = ""
+                var detail = String(format: "audio %.0f éch/s, analyses %.1f/s, pertes %llu ;",
+                                    Double(model.engine.samplesProcessed - s0) / dt, Double(model.engine.framesPublished - a0) / dt,
+                                    model.engine.ring.dropped - dr0)
                 for (i, label) in ["fenêtre", "fond"].enumerated() {
                     guard let v = views[i] else { continue }
                     let n = Double(v.framesDrawn - f0[i])

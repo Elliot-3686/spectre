@@ -73,6 +73,10 @@ final class AnalysisEngine: @unchecked Sendable {
     var release: Double = 0.30
     var peakHoldTime: Double = 1.0
 
+    /// Counters (diagnostics; benign races).
+    private(set) var samplesProcessed: UInt64 = 0
+    private(set) var framesPublished: UInt64 = 0
+
     /// Called on the analysis thread after each published frame.
     var onFrame: (() -> Void)?
 
@@ -228,7 +232,9 @@ final class AnalysisEngine: @unchecked Sendable {
                 let n = ring.read(into: scratch.pointer, count: min(ring.available, scratch.count))
                 let t0 = DispatchTime.now().uptimeNanoseconds
                 let frames = analyzer.process(scratch.pointer, count: n)
+                samplesProcessed &+= UInt64(n)
                 if frames > 0 {
+                    framesPublished &+= UInt64(frames)
                     publish(dt: Double(h) / analyzer.configuration.sampleRate * Double(frames))
                     let us = Double(DispatchTime.now().uptimeNanoseconds - t0) / 1000 / Double(frames)
                     averageFrameMicros = averageFrameMicros * 0.98 + us * 0.02
